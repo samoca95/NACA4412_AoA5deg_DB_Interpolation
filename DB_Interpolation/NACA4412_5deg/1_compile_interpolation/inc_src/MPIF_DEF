@@ -1,0 +1,2 @@
+!! MA: possibile missing definition of  common /nekmpi/
+      integer nid_,np_,nekcomm,nekgroup,nekreal

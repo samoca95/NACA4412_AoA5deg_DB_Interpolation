@@ -1,0 +1,22 @@
+#!/bin/bash
+
+#SBATCH -J w200k_BESKOW
+#SBATCH -A 2016-34-10
+
+#SBATCH -t 24:00:00
+#SBATCH -N 128
+#SBATCH --exclusive
+#SBATCH -n 4096
+#SBATCH --ntasks-per-node=32
+
+# mail alert at start, end and abortion of execution
+#SBATCH --mail-type=ALL
+
+# send mail to this address
+#SBATCH --mail-user=marco.atzori.92@gmail.com
+
+
+rm *.sch
+module swap PrgEnv-cray PrgEnv-intel
+
+aprun -n 4096  ./nek5000 >> logRun_29.txt 2>&1 

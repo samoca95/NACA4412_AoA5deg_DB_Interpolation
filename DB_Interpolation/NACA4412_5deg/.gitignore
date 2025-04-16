@@ -1,0 +1,16 @@
+# Ignore resulting files
+intHistory.f*
+intVX.f*
+intVY.f*
+intVZ.f*
+intLA.f*
+intOX.f*
+intOY.f*
+intOZ.f*
+db_interpolation/
+
+# Ignore temporary files and directories
+__pycache__/
+naca_wing.f
+compiler.out
+SESSION.NAME
