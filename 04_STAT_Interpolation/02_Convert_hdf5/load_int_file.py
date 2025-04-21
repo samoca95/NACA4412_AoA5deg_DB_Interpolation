@@ -42,6 +42,8 @@ def load_int_file(case_type: str,
         npoints = np.fromfile(fid, dtype=np.int32,   count=1)[0]
         dum6    = np.fromfile(fid, dtype=np.float64, count=1)[0]
 
+        print(F)
+
         # Define the structures and coordinates
         Mat = np.zeros((ny, nx))
         fields_F = {}
@@ -52,7 +54,9 @@ def load_int_file(case_type: str,
         for ii in range(1, nstat+nderiv+1):
             
             # Skip 8 bytes after the first field
-            if ii != 1:
+            if ii == 1:
+                fid.seek(0, 1)  # '1' means relative to current position
+            else:
                 fid.seek(8, 1)  # '1' means relative to current position
             
             # Read one field of npoints floats
@@ -299,11 +303,33 @@ def load_int_file(case_type: str,
     print("P")
     out['P'] = fields_F['F4'].copy()
 
+    # RMS and Reynold stress velocities, tensors of Rank 1
+    print("RMS")
+    _U_  = out['U']
+    _V_  = out['V']
+    _W_  = out['W']
+    _uu_ = fields_F['F5'].copy()
+    _vv_ = fields_F['F6'].copy()
+    _ww_ = fields_F['F7'].copy()
+    _uv_ = fields_F['F9'].copy()
+    _vw_ = fields_F['F10'].copy()
+    _uw_ = fields_F['F11'].copy()
+    # [uu uv uw]   [ (F5-F1*F1)  (F9-F1*F2)  (F11-F1*F3)]
+    # [vu vv vw] = [ (F9-F1*F2)  (F6-F2*F2)  (F10-F2*F3)]
+    # [wu wv ww]   [(F11-F1*F3) (F10-F2*F3)   (F7-F3*F3)]
+    out['uu'] = _uu_ - np.multiply(_U_,_U_)
+    out['vv'] = _vv_ - np.multiply(_V_,_V_)
+    out['ww'] = _ww_ - np.multiply(_W_,_W_)
+    out['uv'] = _uv_ - np.multiply(_U_,_V_)
+    out['vw'] = _vw_ - np.multiply(_V_,_W_)
+    out['uw'] = _uw_ - np.multiply(_U_,_W_)
+    if case_type in ['none', 'wake']:
+        pass
+    else:
+        print("ATTENTION! RMS values not projected.")
+
     return out
     
-    
-
-
 
     
 
