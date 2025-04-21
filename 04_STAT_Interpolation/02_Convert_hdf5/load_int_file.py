@@ -267,11 +267,11 @@ def load_int_file(case_type: str,
     out['mu'] = mu
     out['nu'] = nu
     out['rho'] = rho
-    
-    # Mean pressure, scalar
-    print("P")
-    out['P'] = fields_F['F4'].copy()
 
+    # Prepare for projection if needed
+    sin = np.sin(alpha).reshape(1,-1)
+    cos = np.cos(alpha).reshape(1,-1)
+    
     # Mean velocities, tensors of Rank 1
     print("U V W")
     if case_type in ['none', 'wake']:
@@ -281,34 +281,26 @@ def load_int_file(case_type: str,
     else:
         out['U'] = np.zeros((ny, nx))
         out['V'] = np.zeros((ny, nx))
-        out['W'] = np.zeros((ny, nx))
-        for j in range(nx):
-            alpha_ = alpha[j]
-            if case_type == 'suction':
-                R = np.array([
-                    [np.cos(alpha_),  np.sin(alpha_), 0],
-                    [-np.sin(alpha_), np.cos(alpha_), 0],
-                    [0,              0,             1]
-                ])
-            elif case_type == 'pressure':
-                R = np.array([
-                    [np.cos(alpha_),  np.sin(alpha_), 0],
-                    [np.sin(alpha_), -np.cos(alpha_), 0],
-                    [0,              0,             1]
-                ])
-            else:
-                raise ValueError("case_type must be 'suction', 'pressure', 'wake' or 'none'")
-
-            for i in range(ny):
-                vec = np.array([fields_F['F1'][i, j], 
-                                fields_F['F2'][i, j],
-                                fields_F['F3'][i, j]])
-                prod = R @ vec
-                out['U'][i, j] = prod[0]
-                out['V'][i, j] = prod[1]
-                out['W'][i, j] = prod[2]
+        _x = fields_F['F1'].copy()
+        _y = fields_F['F2'].copy()
+        if case_type == 'suction':
+            _proj_x = _x * cos + _y * sin
+            _proj_y = _y * cos - _x * sin
+        elif case_type == 'pressure':
+            _proj_x = _x * cos  + _y * sin
+            _proj_y = _x * sin  - _y * cos
+        else:
+            raise ValueError("case_type must be 'suction', 'pressure', 'wake' or 'none'")
+        out['U'] = _proj_x
+        out['V'] = _proj_y
+        out['W'] = fields_F['F3'].copy()
     
+    # Mean pressure, scalar
+    print("P")
+    out['P'] = fields_F['F4'].copy()
+
     return out
+    
     
 
 

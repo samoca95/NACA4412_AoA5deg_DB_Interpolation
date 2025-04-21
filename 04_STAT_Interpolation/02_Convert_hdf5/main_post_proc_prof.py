@@ -9,7 +9,7 @@ from load_int_file import load_int_file
 #------------------------------------------------------------------------
 # Parameters
 #------------------------------------------------------------------------
-case_type: str = "suction"  # suction, pressure or wake, use none to avoid projection
+case_type: str = "none"  # suction, pressure or wake, use none to avoid projection
 
 path_int_fields: str = "../01_NEK/INTERP"
 path_output: str     = "./hdf5_files"
