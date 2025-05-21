@@ -1,7 +1,7 @@
 # Nek5000_Interpolation
 
 > [!IMPORTANT] 
-> The interpolated fields are in the absolute XY frame of reference to give more freedom to the end user. The x and y components of the vectors should be projected based on the surface angle of the profile if you want to use a wall-tangent and wall-normal reference frame. A routine for that is found in `./3_convert_to_hdf5/B_read_int_data.py`.
+> The interpolated fields are in the absolute XY frame of reference to give more freedom to the end user. The x and y components of the vectors should be projected based on the surface angle of the profile if you want to use a wall-tangent and wall-normal reference frame. You can project them if desired using the appropriate flag inside `./3_convert_to_hdf5/B_read_int_data.py`.
 
 Folder structure:
 

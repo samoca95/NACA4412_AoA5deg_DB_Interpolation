@@ -5,6 +5,9 @@ The framework comprises two ends:
 1. **NEK5000**: **(1) On the fly: in-situ spanwise averaging** and **(2) Post-processing: Ensemble averaging**
 2. **Matlab**: **(1) Interpolation map** and **(2) Rotation and Calculation of the raw data** 
 
+> [!IMPORTANT] 
+> Statistical parameters that depend from infinite values (like Cp) could be biased due to the lower limit in y used for the interpolation. Due to the fact that infitnite values are taken from the furthest point from the wall.
+
 ## Get Started: Pipeline of the framework: 
 
 1. **Generate the interpolation map use matlab:**
@@ -37,32 +40,26 @@ The framework comprises two ends:
 
     Now there will be a binary file `INTERP/int_fld` which contains the quantities and derivatives we need. 
 
-3. **[SIMPLE ALTERNATIVE] Obtain the mean velocity fields and hdf5 files from the `int_fld` file.**
+3. **[ADVANCED ALTERNATIVE] (Preferred) Use the MATLAB for process the `int_fld` file, then convert to python.**
 
-    Inside `02_Convert_hdf5`, run:
+    1. Launch your MATLAB inside `02_Full_statistics/`, run `m1_read_interp.m` and then `m2_export_stats.m`.
+    2. Run the python script to read the statistics and convert them to a python-readable .h5 file:
+        
+        python m2_basic_conversion.py
 
-        python main_post_proc_prof.py
+    > [!IMPORTANT] 
+    > The scripts are adapted not to project the statistics to provide additional flexibility. 
+    > You can adjust it by commenting the lines `alphal = zeros(size(alphal));`, also for `alphau` and `alpha` as needed.
+
+4. **[SIMPLE ALTERNATIVE] Obtain the mean velocity fields and hdf5 files from the `int_fld` file with python (only mean and rms velocities).**
+
+    Inside `03_Convert_hdf5/`, run:
+
+        python m2_basic_conversion.py
 
     This script will output the averaged velocity components and pressure field to an hdf5 file inside `hdf5_files/`.
 
     Set the parameter `case_type` to "none" to avoid projection of the vector fields to the wall refererence frame (this is done, as in the snapshots interpolation, to givemore flexibility). 
-   
-
-4. **[ADVANCED ALTERNATIVE] Use the MATLAB for process the `int_fld` file.**
-
-    (From Yuning, not adapted)
-
-    Launch your MATLAB inside `02_Matlab_code/`, run: 
-
-            main_post_proc_prof 
-
-    The distribution of skin-friction coefficient $c_f$ will be printed afterwards.
-  
-    Now you can visualize the results in `03_Visualization/`
-
-        python 01-Integral-Quantities.py 
-        python 02-WallNormal-Profiles.py 
-        python 03-clcd.py 
 
 
 ## Introduction 

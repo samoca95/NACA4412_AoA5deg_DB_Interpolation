@@ -9,19 +9,19 @@ from load_int_file import load_int_file
 #------------------------------------------------------------------------
 # Parameters
 #------------------------------------------------------------------------
-out_start_index: int = 4001  # Index of the first file in the global database
-in_start_index: int  = 840     # File to start processing (in case you do it by batches), normally 1
-n_files: int = 1000          # Number of files to transform to hdf5 (total in the folder)
-
+case_type:str = "suction" # pressure, suction, wake
+out_start_index: int = 1  # Index of the first file in the global database
+in_start_index: int  = 1  # File to start processing (in case you do it by batches), normally 1
+n_files: int = 10000      # Number of files to transform to hdf5 (total in the folder)
 
 # path_int_fields: str = "../2_run_interpolation/INTERP"
-path_int_fields: str = "../../../NACA4412_5deg_DB/2_INTERPOLATED_RAW/04001_05000"
+path_int_fields: str = "../../../NACA4412_5deg_DB/2_INTERPOLATED_RAW_SS/00001_10000"
 path_db_fields: str  = "./hdf5_files"
 
 flag_suction_side: bool  = True
 flag_pressure_side: bool = False
 flag_velocity: bool      = True
-flag_vorticity: bool     = False
+flag_vorticity: bool     = True
 flag_la2: bool           = False
 flag_project: bool       = False
 flag_save_h5: bool       = True
@@ -30,7 +30,7 @@ flag_save_h5: bool       = True
 # Import the interpolation grid
 #------------------------------------------------------------------------
 print("Imported interpolation grid:", flush=True)
-load_mat: dict = sio.loadmat("../0_generate_grid/int_mesh_suction.mat")
+load_mat: dict = sio.loadmat(f"../0_generate_grid/int_mesh_{case_type}.mat")
 int_mesh = load_mat["int_mesh"]
 
 Rec = float(np.squeeze(int_mesh["Rec"][0,0]))
@@ -65,15 +65,15 @@ cosalpha = np.cos(alpha)
 if flag_save_h5:
     if not os.path.exists(path_db_fields):
         os.makedirs(path_db_fields)
-    _fileName: str       = f"naca4412_5deg_200k.grid.h5"
+    _fileName: str       = f"naca4412_5deg_200k_{case_type}.grid.h5"
     fileName_grid: str = path_db_fields + "/" + _fileName
     with h5py.File(fileName_grid,'w') as fGrid:
         fGrid.create_dataset("Rec", data=Rec)
         fGrid.create_dataset("utz", data=utz)
-        fGrid.create_dataset("xc_vec", data=xc)
-        fGrid.create_dataset("xs_vec", data=xs)
-        fGrid.create_dataset("yn_vec", data=yn)
-        fGrid.create_dataset("z_vec",  data=z)
+        fGrid.create_dataset("xc_vec", data=xc)     # Points in x in the chord-wise reference frame
+        fGrid.create_dataset("xs_vec", data=xs)     # Points in x in the wall reference frame
+        fGrid.create_dataset("yn_vec", data=yn)     # Points in y in the wall reference frame
+        fGrid.create_dataset("z_vec",  data=z)      # Points in z in the wall reference frame       
         fGrid.create_dataset("alpha",  data=alpha)
         fGrid.create_dataset("x_pts",  data=x_pts)
         fGrid.create_dataset("y_pts",  data=y_pts)
@@ -126,7 +126,6 @@ for i_file in range(in_start_index,n_files+1):
     #------------------------------------------------------------------------
     # Project the xy vectors to the wall reference frame
     #------------------------------------------------------------------------
-    
     if flag_project:
         cos = cosalpha.reshape(1,-1,1)
         sin = sinalpha.reshape(1,-1,1)
@@ -160,26 +159,31 @@ for i_file in range(in_start_index,n_files+1):
     #------------------------------------------------------------------------
     if flag_save_h5:
         out_index = out_start_index + i_file - 1
-        _fileName: str       = f"naca4412_5deg_200k.{out_index:05d}.h5.uvw"
-        fileName_interp: str = path_db_fields + "/" + _fileName
-        with h5py.File(fileName_interp,'w') as fInterp:
-            fInterp.create_dataset("Rec", data=Rec)  # Reynolds number
-            fInterp.create_dataset("utz", data=utz)  # Friction velocity at x/c=0.4
-            fInterp.create_dataset("time", data=time)  # Time
-            fInterp.create_dataset("xc_vec", data=xc)  # Points in x in the chord-wise reference frame
-            fInterp.create_dataset("xs_vec", data=xs)  # Points in x in the wall reference frame
-            fInterp.create_dataset("yn_vec", data=yn)   # Points in y in the wall reference frame
-            fInterp.create_dataset("z_vec", data=z)    # Points in z in the wall reference frame
-            if flag_velocity:                          # Velocity vector
+        if flag_velocity:  # Velocity vector
+            _fileName: str       = f"naca4412_5deg_200k_{case_type}.{out_index:05d}.h5.uvw"
+            fileName_interp: str = path_db_fields + "/" + _fileName
+            with h5py.File(fileName_interp,'w') as fInterp:
+                fInterp.create_dataset("time", data=time)
                 fInterp.create_dataset("vx", data=int_vx)
                 fInterp.create_dataset("vy", data=int_vy)
                 fInterp.create_dataset("vz", data=int_vz)
-            if flag_vorticity:                         # Vorticity vector
+
+        if flag_vorticity:  # Vorticity vector
+            _fileName: str       = f"naca4412_5deg_200k_{case_type}.{out_index:05d}.h5.omega"
+            fileName_interp: str = path_db_fields + "/" + _fileName
+            with h5py.File(fileName_interp,'w') as fInterp:
+                fInterp.create_dataset("time", data=time)
                 fInterp.create_dataset("ox", data=int_ox)
                 fInterp.create_dataset("oy", data=int_oy)
                 fInterp.create_dataset("oz", data=int_oz)
-            if flag_la2:                               # Lambda2 scalar field
+
+        if flag_la2:  # Lambda2 scalar field
+            _fileName: str       = f"naca4412_5deg_200k_{case_type}.{out_index:05d}.h5.la2"
+            fileName_interp: str = path_db_fields + "/" + _fileName
+            with h5py.File(fileName_interp,'w') as fInterp:
+                fInterp.create_dataset("time", data=time)
                 fInterp.create_dataset("la2", data=int_la)
+
     print(f"  * Saved {_fileName}, time: {time:.3f}s", flush=True)
 
 #------------------------------------------------------------------------

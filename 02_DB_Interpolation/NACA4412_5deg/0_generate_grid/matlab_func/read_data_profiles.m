@@ -13,8 +13,8 @@ ln=length(yn);
 %Number of profiles on top and bottom
 np=(npoints/ln)/2;
 
-disp(ln)
-disp(np)
+disp("ln:", ln)
+disp("np:", np)
 
 %Define structures and coordinates
 top=struct;
@@ -57,9 +57,10 @@ for i=1:np-1
 end
 
 
-fname         = [path,'ZSTAT/int_fld'];
+fname         = [path,'int_fld'];
+disp('Reading binary file ',fname);
 
-[fid,message] = fopen(fname,'r','ieee-le');
+[fid,~] = fopen(fname,'r','ieee-le');
 hdr           = fread(fid,1,'int32')      ;
 F             = fread(fid,hdr,'*char')'   ;
 dum5          = fread(fid,1,'*float64')   ;

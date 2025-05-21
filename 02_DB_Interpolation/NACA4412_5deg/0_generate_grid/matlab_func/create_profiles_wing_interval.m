@@ -76,7 +76,7 @@ for i = 1:length(xprofu(1, :))
 end
 
 % Lower surface
-for i = 2:length(xprofl(1, :))
+for i = 1:length(xprofl(1, :))
     for j = 1:length(xprofl(:, 1))
         npoints = npoints + 1;
         x_pts(npoints, 1) = xprofl(j, i);
